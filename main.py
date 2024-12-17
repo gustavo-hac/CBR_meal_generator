@@ -189,9 +189,10 @@ def criar_cardapio(energia_total, limiar):
     print("Itens no cardápio:")
     for nome, info in cardapio_consolidado.items():
         print(f"- {nome} (Energia: {info['energia']}) (Quantidade: {info['quantidade']})")
-
-    print(f"\nEnergia total usada: {energia_usada}\n")
-    casos.append(Cardapio(energia_total,limiar,cardapio,energia_usada))
+    # print(f"\nEnergia total usada: {energia_usada}\n")
+    caso = Cardapio(energia_total,limiar,cardapio,energia_usada)
+    casos.append(caso)
+    caso.mostrar_tabela()
     return cardapio
 
 def criar_cardapio_usuario(energia_total,limiar):
@@ -302,14 +303,10 @@ def iniciar_casos(quant_pratos):
     energia = 500
     i = 0
     while i < quant_pratos:
-      print(f"\nCardápio {i+1}")
+      print(f"\nCardápio Base {i+1}")
       i += 1
       energia += 400
       cardapio = criar_cardapio(energia, 200)
-    print("\nEnergia de cada cardapio:\n")
-    for caso in casos:
-      print(caso.energia_total)
-    # print(cardapio)
 
 def adaptar_caso(caso, energia_min, energia_max):
   # print(f"energia_min = {energia_min}")  # print(f"energia_max = {energia_max}")
@@ -327,6 +324,7 @@ def adaptar_caso(caso, energia_min, energia_max):
   tentativas = 0
   while tentativas < 100:
     if (itens_mudados != 0) & (energia_min <= caso.energia_total <= energia_max):
+       print("\n Modificacoes necessarias feitas")
        break
     esperanca = True
     lista = []
@@ -369,7 +367,7 @@ def adaptar_caso(caso, energia_min, energia_max):
       caso.energia_total += energia_item
       caso.adicionar_item(item)  
       itens_mudados += 1      
-      print(f"{item.iloc[1]} adicionado")
+      print(f"Item {item.iloc[1]} adicionado para chegar no limar")
 
   cardapio_consolidado = {}
   for item in caso.alimentos:
@@ -384,7 +382,7 @@ def adaptar_caso(caso, energia_min, energia_max):
   for nome, info in cardapio_consolidado.items():
       print(f"- {nome} (Energia: {info['energia']}) (Quantidade: {info['quantidade']})")
 
-  print(f"\nEnergia total usada: {caso.energia_total}")
+  caso.mostrar_tabela()
   return caso
 
 def escolher_prato(energia,limiar):
@@ -400,15 +398,17 @@ def escolher_prato(energia,limiar):
   i = 0
   for caso in casos:
     if caso.energia_total > energia:
-      if energia_min < novo_caso.energia_total < energia_max:
+      if energia_min < caso.energia_total < energia_max:
         novo_caso = caso
+      else:
+        break
     else:
       novo_caso = caso
     i += 1
   print(f"\nAdaptando caso do Cardapio Base {i}\n")
   caso_adaptado = adaptar_caso(novo_caso, energia_min, energia_max)
   lista_cardapio.append(caso_adaptado)
-  return lista_cardapio
+  return [lista_cardapio,i]
 ## Fun??o principal que inicia o programa
 def start():
   while True:
@@ -421,15 +421,22 @@ def start():
       case 1:
         energia = int(input("\nDigite a energia m?dia desejada: "))
         limiar = int(input("Digite o limiar: "))
-        lista_cardapio = escolher_prato(energia,limiar)
+        informacao = escolher_prato(energia,limiar)
+        lista_cardapio = informacao[0]
+        indice = informacao[1]
         entrada_incorreta = True
         while entrada_incorreta:
           cardapio_num = int(input("\nDigite o n?mero do Cardapio desejado ou \"0\" para sair: "))
           if 1 <= cardapio_num < (len(lista_cardapio) + 1):
             entrada_incorreta = False
-            casos.append(lista_cardapio[cardapio_num-1])
             print(f"\nCardapio {cardapio_num} escolhido")
-            print(f"\nCardapio {cardapio_num} adicionado a base de casos")
+            if{cardapio_num == 3}:
+              casos.pop(indice)     
+              casos.append(lista_cardapio[cardapio_num-1])
+              print(f"\nCardapio Base {indice} modificado na base de dados")
+            else:
+              casos.append(lista_cardapio[cardapio_num-1])
+              print(f"\nCardapio {cardapio_num} adicionado a base de casos")
           else:
             if 0 == cardapio_num:
               print(f"Nenhum Cardapio selecionado")
